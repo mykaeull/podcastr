@@ -1,11 +1,19 @@
 import { GetStaticProps } from "next"
 import { api } from "../services/api"
+import { format, parseISO } from "date-fns"
+import ptBR from "date-fns/locale/pt-BR"
+import { convertDurationToTimeString } from "../utils/convertDurationToTimeString"
 
 interface Episode {
   id: string;
   title: string;
+  thumbnail: string;
   members: string;
-  published_at: string;
+  publishedAt: string;
+  duration: number;
+  durationAsString: string;
+  description: string;
+  url: string;
 }
 
 interface HomeProps {
@@ -31,9 +39,23 @@ export const getStaticProps: GetStaticProps = async () => {
     }
   })
 
+  const episodes = data.map((e) => {
+    return {
+      id: e.id,
+      title: e.title,
+      thumbnail: e.thumbnail,
+      members: e.members,
+      publishedAt: format(parseISO(e.published_at), 'd MMM yy', { locale: ptBR }),
+      duration: Number(e.file.duration),
+      durationAsString: convertDurationToTimeString(Number(e.file.duration)),
+      description: e.description,
+      url: e.file.url
+    }
+  })
+
   return {
     props: {
-      episodes: data
+      episodes: episodes
     },
     revalidate: 60 * 60 * 8
   }
